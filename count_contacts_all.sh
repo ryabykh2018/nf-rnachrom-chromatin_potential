@@ -227,7 +227,7 @@ python3 RD_chP.py \
     --output_path "$output_path" \
     --input_path_RNAseq "$input_path_RNAseq" \
     --counts_RNAseq "counts.tsv" \
-    --counts_contacts "counts_contacts_UU_UM_filter_dist_${d}.tsv" \
+    --counts_contacts "counts.tsv" \
     --N_contacts_min "$n_contacts_min" \
     --fdr_threshold "$fdr_threshold" \
     --type "UU_UM_all"
@@ -242,7 +242,8 @@ python3 RD_chP.py \
     --fdr_threshold "$fdr_threshold" \
     --type "UU_UM_filter_dist_${d}"
 
-# /usr/bin/time -v sh count_contacts_all.sh -d 500000 \
+# /usr/bin/time -v sh count_contacts_all.sh \
+#                        -d 500000 \
 #                        -i /home/snap/projects/lncRNA_app/voting/output_SRR17331253_UU_UM \
 #                        -o /home/snap/projects/lncRNA_app/voting/output_SRR17331253_UU_UM/chP \
 #                        -u contacts.voting.UU.bed \
