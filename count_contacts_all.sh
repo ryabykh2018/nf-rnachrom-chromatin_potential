@@ -202,7 +202,7 @@ rm "$output_file_um_dist"
 cp "$input_path/counts.tsv" "$output_path"
 
 # Run Python script for different datasets
-python3 RD_chP3.py \
+python3 RD_chP.py \
     --input_path "$output_path" \
     --output_path "$output_path" \
     --input_path_RNAseq "$input_path_RNAseq" \
@@ -212,7 +212,7 @@ python3 RD_chP3.py \
     --fdr_threshold "$fdr_threshold" \
     --type "UU_all"
 
-python3 RD_chP3.py \
+python3 RD_chP.py \
     --input_path "$output_path" \
     --output_path "$output_path" \
     --input_path_RNAseq "$input_path_RNAseq" \
@@ -222,17 +222,17 @@ python3 RD_chP3.py \
     --fdr_threshold "$fdr_threshold" \
     --type "UU_filter_dist_${d}"
 
-python3 RD_chP3.py \
+python3 RD_chP.py \
     --input_path "$output_path" \
     --output_path "$output_path" \
     --input_path_RNAseq "$input_path_RNAseq" \
     --counts_RNAseq "counts.tsv" \
-    --counts_contacts "counts_contacts_UU_all.tsv" \
+    --counts_contacts "counts_contacts_UU_UM_filter_dist_${d}.tsv" \
     --N_contacts_min "$n_contacts_min" \
     --fdr_threshold "$fdr_threshold" \
     --type "UU_UM_all"
 
-python3 RD_chP3.py \
+python3 RD_chP.py \
     --input_path "$output_path" \
     --output_path "$output_path" \
     --input_path_RNAseq "$input_path_RNAseq" \
