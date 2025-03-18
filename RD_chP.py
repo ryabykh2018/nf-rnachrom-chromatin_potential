@@ -118,7 +118,12 @@ def main():
         for i in range(len(unique_gene_types), len(axes)):
             fig.delaxes(axes[i])
 
-        plt.suptitle('Distribution of chromatin potential across all RNA biotypes (FDR < {fdr_threshold}, N contacts > {N_contacts_min}, {type})'.format(fdr_threshold=args.fdr_threshold, N_contacts_min=args.N_contacts_min, type=args.type), fontsize=16)
+        plt.suptitle('Distribution of chromatin potential across all RNA biotypes (FDR < {fdr_threshold}, N contacts > {N_contacts_min}, gene length > {gene_len_min}, {type})'.format(
+            fdr_threshold=args.fdr_threshold, 
+            N_contacts_min=args.N_contacts_min, 
+            gene_len_min=args.gene_len_min,
+            type=args.type), 
+            fontsize=16)
         plt.tight_layout(rect=[0, 0, 1, 0.97])
         plt.savefig(os.path.join(args.output_path, 'chP_{type}.png'.format(type=args.type)), dpi=360, bbox_inches="tight")
         plt.close()
