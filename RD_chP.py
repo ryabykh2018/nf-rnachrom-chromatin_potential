@@ -23,6 +23,8 @@ def parse_args():
                       help='Minimum number of contacts (default: 100)')
     parser.add_argument('--fdr_threshold', type=float, default=0.05,
                       help='FDR threshold (default: 0.05)')
+    parser.add_argument('--gene_len_min', type=int, default=100,
+                      help='Minimum gene length (default: 100)')
     parser.add_argument('--type', type=str, required=True,
                       help='Type of contacts (UU_all or UU_dist or UM_all or UM_dist)')
     return parser.parse_args()
@@ -43,14 +45,15 @@ def main():
     
     # Read input files
     counts_RNAseq = pd.read_csv(os.path.join(args.input_path_RNAseq, args.counts_RNAseq), sep='\t')
-    counts_RNAseq = counts_RNAseq[['gene_name', 'gene_type', 'N_counts']].rename(columns={'N_counts': 'N_counts_RNAseq'})
+    counts_RNAseq['gene_length'] = counts_RNAseq['end'] - counts_RNAseq['start'] + 1
+    counts_RNAseq = counts_RNAseq[['gene_name', 'gene_type', 'N_counts', 'gene_length']].rename(columns={'N_counts': 'N_counts_RNAseq'})
 
     counts_contacts = pd.read_csv(os.path.join(args.input_path, args.counts_contacts), sep='\t')
     counts_contacts = counts_contacts[['gene_name', 'gene_type', 'N_counts']].rename(columns={'N_counts': 'N_contacts'})
 
     # Merge and filter data
     counts_merge = counts_RNAseq.merge(counts_contacts, how='left')
-    counts_merge = counts_merge[counts_merge['N_contacts'] > args.N_contacts_min]
+    counts_merge = counts_merge[(counts_merge['N_contacts'] > args.N_contacts_min) & (counts_merge['gene_length'] > args.gene_len_min)]
     counts_merge[['N_counts_RNAseq', 'N_contacts']] += 1
 
     # Calculate statistics
@@ -61,7 +64,14 @@ def main():
     chP['fdr_bh'] = multipletests(chP['pval'], method='fdr_bh')[1]
 
     # Save results
-    chP.to_csv(os.path.join(args.output_path, 'chP_{type}.tab'.format(type=args.type)), sep='\t', index=False)
+    chP_output = chP.copy()
+    chP_output['gene_length'] = chP_output['gene_length'].astype(int)
+    chP_output['N_contacts'] = chP_output['N_contacts'].astype(int)
+    chP_output['N_counts_RNAseq'] = chP_output['N_counts_RNAseq'].astype(int)
+    chP_output['chP'] = chP_output['chP'].round(2)
+    chP_output['pval'] = chP_output['pval'].map('{:.2e}'.format)
+    chP_output['fdr_bh'] = chP_output['fdr_bh'].map('{:.2e}'.format)
+    chP_output.to_csv(os.path.join(args.output_path, 'chP_{type}.tab'.format(type=args.type)), sep='\t', index=False)
 
     # Create plots
     unique_gene_types = chP[chP['fdr_bh'] < args.fdr_threshold].sort_values(by="N_contacts")['gene_type'].unique()

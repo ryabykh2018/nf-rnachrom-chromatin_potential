@@ -2,13 +2,13 @@
 
 # Function to display usage information
 usage() {
-    echo "Usage: $0 -d <distance> -i <input_path> -o <output_path> -u <uu_file> -m <um_file> -n <N_contacts_min> -f <fdr_threshold> -r <input_path_RNAseq>"
-    echo "Example: $0 -d 500000 -i /path/to/input -o /path/to/output -u contacts.voting.UU.bed -m contacts.voting.UM.bed -n 100 -f 0.05 -r /path/to/rnaseq"
+    echo "Usage: $0 -d <distance> -i <input_path> -o <output_path> -u <uu_file> -m <um_file> -n <N_contacts_min> -f <fdr_threshold> -r <input_path_RNAseq> -l <gene_len_min>"
+    echo "Example: $0 -d 500000 -i /path/to/input -o /path/to/output -u contacts.voting.UU.bed -m contacts.voting.UM.bed -n 100 -f 0.05 -r /path/to/rnaseq -l 1000"
     exit 1
 }
 
 # Parse command line arguments
-while getopts "d:i:o:u:m:n:f:r:" opt; do
+while getopts "d:i:o:u:m:n:f:r:l:" opt; do
     case $opt in
         d) d="$OPTARG";;
         i) input_path="$OPTARG";;
@@ -18,12 +18,13 @@ while getopts "d:i:o:u:m:n:f:r:" opt; do
         n) n_contacts_min="$OPTARG";;
         f) fdr_threshold="$OPTARG";;
         r) input_path_RNAseq="$OPTARG";;
+        l) gene_len_min="$OPTARG";;
         *) usage;;
     esac
 done
 
 # Check if all required parameters are provided
-if [ -z "$d" ] || [ -z "$input_path" ] || [ -z "$output_path" ] || [ -z "$uu_file" ] || [ -z "$um_file" ] || [ -z "$n_contacts_min" ] || [ -z "$fdr_threshold" ] || [ -z "$input_path_RNAseq" ]; then
+if [ -z "$d" ] || [ -z "$input_path" ] || [ -z "$output_path" ] || [ -z "$uu_file" ] || [ -z "$um_file" ] || [ -z "$n_contacts_min" ] || [ -z "$fdr_threshold" ] || [ -z "$input_path_RNAseq" ] || [ -z "$gene_len_min" ]; then
     usage
 fi
 
@@ -210,6 +211,7 @@ python3 RD_chP.py \
     --counts_contacts "counts_contacts_UU_all.tsv" \
     --N_contacts_min "$n_contacts_min" \
     --fdr_threshold "$fdr_threshold" \
+    --gene_len_min "$gene_len_min" \
     --type "UU_all"
 
 python3 RD_chP.py \
@@ -220,6 +222,7 @@ python3 RD_chP.py \
     --counts_contacts "counts_contacts_UU_filter_dist_${d}.tsv" \
     --N_contacts_min "$n_contacts_min" \
     --fdr_threshold "$fdr_threshold" \
+    --gene_len_min "$gene_len_min" \
     --type "UU_filter_dist_${d}"
 
 python3 RD_chP.py \
@@ -230,6 +233,7 @@ python3 RD_chP.py \
     --counts_contacts "counts.tsv" \
     --N_contacts_min "$n_contacts_min" \
     --fdr_threshold "$fdr_threshold" \
+    --gene_len_min "$gene_len_min" \
     --type "UU_UM_all"
 
 python3 RD_chP.py \
@@ -240,6 +244,7 @@ python3 RD_chP.py \
     --counts_contacts "counts_contacts_UU_UM_filter_dist_${d}.tsv" \
     --N_contacts_min "$n_contacts_min" \
     --fdr_threshold "$fdr_threshold" \
+    --gene_len_min "$gene_len_min" \
     --type "UU_UM_filter_dist_${d}"
 
 # /usr/bin/time -v sh count_contacts_all.sh \
@@ -250,4 +255,5 @@ python3 RD_chP.py \
 #                        -m contacts.voting.UM.bed \
 #                        -n 100 \
 #                        -f 0.05 \
-#                        -r /home/snap/Downloads
+#                        -r /home/snap/Downloads \
+#                        -l 100
