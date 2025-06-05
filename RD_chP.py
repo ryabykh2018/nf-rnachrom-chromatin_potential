@@ -71,7 +71,7 @@ def main():
     chP_output['chP'] = chP_output['chP'].round(2)
     chP_output['pval'] = chP_output['pval'].map('{:.2e}'.format)
     chP_output['fdr_bh'] = chP_output['fdr_bh'].map('{:.2e}'.format)
-    chP_output.to_csv(os.path.join(args.output_path, 'chP_{type}.tab'.format(type=args.type)), sep='\t', index=False)
+    chP_output.rename(columns={'N_contacts': 'N_contacts_plus_1', 'N_counts_RNAseq': 'N_counts_RNAseq_plus_1'}, inplace=True).to_csv(os.path.join(args.output_path, 'chP_{type}.tab'.format(type=args.type)), sep='\t', index=False)
 
     # Create plots
     unique_gene_types = chP[chP['fdr_bh'] < args.fdr_threshold].sort_values(by="N_contacts")['gene_type'].unique()
