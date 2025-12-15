@@ -50,7 +50,7 @@ def main():
 
     counts_contacts = pd.read_csv(os.path.join(args.input_path, args.counts_contacts), sep='\t')
     counts_contacts = counts_contacts[['gene_name', 'gene_type', 'N_counts']].rename(columns={'N_counts': 'N_contacts'})
-
+    
     # Merge and filter data
     counts_merge = counts_RNAseq.merge(counts_contacts, how='left')
     counts_merge = counts_merge[(counts_merge['N_contacts'] > args.N_contacts_min) & (counts_merge['gene_length'] > args.gene_len_min)]
@@ -71,7 +71,7 @@ def main():
     chP_output['chP'] = chP_output['chP'].round(2)
     chP_output['pval'] = chP_output['pval'].map('{:.2e}'.format)
     chP_output['fdr_bh'] = chP_output['fdr_bh'].map('{:.2e}'.format)
-    chP_output.rename(columns={'N_contacts': 'N_contacts_plus_1', 'N_counts_RNAseq': 'N_counts_RNAseq_plus_1'}, inplace=True).to_csv(os.path.join(args.output_path, 'chP_{type}.tab'.format(type=args.type)), sep='\t', index=False)
+    chP_output.rename(columns={'N_contacts': 'N_contacts_plus_1', 'N_counts_RNAseq': 'N_counts_RNAseq_plus_1'}).to_csv(os.path.join(args.output_path, 'chP_{type}.tab'.format(type=args.type)), sep='\t', index=False)
 
     # Create plots
     unique_gene_types = chP[chP['fdr_bh'] < args.fdr_threshold].sort_values(by="N_contacts")['gene_type'].unique()
