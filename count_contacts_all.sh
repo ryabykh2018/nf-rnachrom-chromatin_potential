@@ -2,13 +2,13 @@
 
 # Function to display usage information
 usage() {
-    echo "Usage: $0 -d <distance> -i <input_path> -o <output_path> -u <uu_file> -m <um_file> -n <N_contacts_min> -f <fdr_threshold> -r <input_path_RNAseq> -l <gene_len_min>"
-    echo "Example: $0 -d 500000 -i /path/to/input -o /path/to/output -u contacts.voting.UU.bed -m contacts.voting.UM.bed -n 100 -f 0.05 -r /path/to/rnaseq -l 1000"
+    echo "Usage: $0 -d <distance> -i <input_path> -o <output_path> -u <uu_file> -m <um_file> -n <N_contacts_min> -f <fdr_threshold> -r <input_path_RNAseq> -l <gene_len_min> -s <path_to_RD_chP.py>"
+    echo "Example: $0 -d 500000 -i /path/to/input -o /path/to/output -u contacts.voting.UU.bed -m contacts.voting.UM.bed -n 100 -f 0.05 -r /path/to/rnaseq -l 1000 -s -s /path/to/RD_chP.py"
     exit 1
 }
 
 # Parse command line arguments
-while getopts "d:i:o:u:m:n:f:r:l:" opt; do
+while getopts "d:i:o:u:m:n:f:r:l:s:" opt; do
     case $opt in
         d) d="$OPTARG";;
         i) input_path="$OPTARG";;
@@ -19,6 +19,7 @@ while getopts "d:i:o:u:m:n:f:r:l:" opt; do
         f) fdr_threshold="$OPTARG";;
         r) input_path_RNAseq="$OPTARG";;
         l) gene_len_min="$OPTARG";;
+        s) SCRIPTSPATH="$OPTARG";;
         *) usage;;
     esac
 done
@@ -203,7 +204,7 @@ rm "$output_file_um_dist"
 cp "$input_path/counts.tsv" "$output_path"
 
 # Run Python script for different datasets
-python3 RD_chP.py \
+python3 $SCRIPTSPATH/RD_chP.py \
     --input_path "$output_path" \
     --output_path "$output_path" \
     --input_path_RNAseq "$input_path_RNAseq" \
@@ -214,7 +215,7 @@ python3 RD_chP.py \
     --gene_len_min "$gene_len_min" \
     --type "UU_all"
 
-python3 RD_chP.py \
+python3 $SCRIPTSPATH/RD_chP.py \
     --input_path "$output_path" \
     --output_path "$output_path" \
     --input_path_RNAseq "$input_path_RNAseq" \
@@ -225,7 +226,7 @@ python3 RD_chP.py \
     --gene_len_min "$gene_len_min" \
     --type "UU_filter_dist_${d}"
 
-python3 RD_chP.py \
+python3 $SCRIPTSPATH/RD_chP.py \
     --input_path "$output_path" \
     --output_path "$output_path" \
     --input_path_RNAseq "$input_path_RNAseq" \
@@ -236,7 +237,7 @@ python3 RD_chP.py \
     --gene_len_min "$gene_len_min" \
     --type "UU_UM_all"
 
-python3 RD_chP.py \
+python3 $SCRIPTSPATH/RD_chP.py \
     --input_path "$output_path" \
     --output_path "$output_path" \
     --input_path_RNAseq "$input_path_RNAseq" \

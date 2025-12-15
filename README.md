@@ -4,7 +4,7 @@
 
 >conda activate pipline
 
-Usage: sh count_contacts_all.sh -d <distance> -i <input_path> -o <output_path> -u <uu_file> -m <um_file> -n <N_contacts_min> -f <fdr_threshold> -r <input_path_RNAseq> -l <gene_len_min>
+Usage: sh count_contacts_all.sh -d <distance> -i <input_path> -o <output_path> -u <uu_file> -m <um_file> -n <N_contacts_min> -f <fdr_threshold> -r <input_path_RNAseq> -l <gene_len_min> -s <path_to_RD_chP.py>
 
 Example:
 /usr/bin/time -v sh count_contacts_all.sh \
@@ -16,4 +16,5 @@ Example:
             -n 100 \
             -f 0.05 \
             -r /home/snap/Downloads \
-            -l 1000
+            -l 1000 \
+            -s /home/snap/projects/lncRNA_app/chromatin_potential
