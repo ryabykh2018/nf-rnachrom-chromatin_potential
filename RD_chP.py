@@ -2,6 +2,8 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib.colors import to_rgba
 import seaborn as sns
 from statsmodels.stats.proportion import proportions_ztest
@@ -41,7 +43,7 @@ def calculate_stats(row, Ne, Nc):
     Z, pval = proportions_ztest([row['N_contacts'], row['N_counts_RNAseq']], [Nc, Ne])
     return pd.Series({'chP': Z,'pval': pval})
 
-def joinplot_chP_Ncontacts(test_data, save_name):
+def joinplot_chP_Ncontacts(test_data, save_name, args):
 
     test_data_sorted = test_data.sort_values('biotype2', ascending=True)
     
@@ -95,16 +97,16 @@ def joinplot_chP_Ncontacts(test_data, save_name):
         
     # Находим точки с максимальным и предмаксимальным значениями по OY
     sorted_by_oy = test_data_sorted.sort_values("chP", ascending=False)
-    max_oy_point = sorted_by_oy.iloc[0]
-    second_max_oy_point = sorted_by_oy.iloc[1]
+    # max_oy_point = sorted_by_oy.iloc[0]
+    # second_max_oy_point = sorted_by_oy.iloc[1]
     
     # Функция для определения положения подписи
-    def get_annotation_params(x_val):
-        threshold = 10000
-        if x_val > threshold:  # Если точка в правой части графика
-            return (-10, 0), 'right'  # Подпись слева
-        else:  # Если точка в левой части
-            return (10, 0), 'left'  # Подпись справа
+    # def get_annotation_params(x_val):
+    #     threshold = 10000
+    #     if x_val > threshold:  # Если точка в правой части графика
+    #         return (-10, 0), 'right'  # Подпись слева
+    #     else:  # Если точка в левой части
+    #         return (10, 0), 'left'  # Подпись справа
     
     # # Подпись для точки с максимальным OY 
     # xytext1, ha1 = get_annotation_params(max_oy_point['N_contacts'])
@@ -128,6 +130,11 @@ def joinplot_chP_Ncontacts(test_data, save_name):
 
     g.ax_joint.legend(handles=legend_elements, title='Biotype',frameon=True, framealpha=0.5, fontsize=14, title_fontsize=16, loc='lower right')
     
+    
+    title = f'Distribution of chromatin potential across all RNA biotypes\n(FDR < {args.fdr_threshold}, N contacts > {args.N_contacts_min}, gene length > {args.gene_len_min}, {args.type})'
+    
+    plt.suptitle(title, fontsize=16, y=0.98)
+
     # Подписи осей
     xlabel = 'The total number of contacts'
     g.ax_joint.set_xlabel(xlabel, fontsize=16, labelpad=10)
@@ -137,14 +144,16 @@ def joinplot_chP_Ncontacts(test_data, save_name):
     g.ax_joint.tick_params(axis='x', labelsize=14)
     g.ax_joint.tick_params(axis='y', labelsize=14)
     
+    g.fig.subplots_adjust(top=0.88)  # Оставляем место для заголовка
+
     # Добавляем легкую сетку
     # g.ax_joint.grid(True, linestyle='--', alpha=0.5)
     
     # PDF (векторный формат)
     # plt.savefig(f"{save_name}.pdf", format='pdf', dpi=360, bbox_inches="tight")
     # JPG (растровый формат)
-    plt.savefig(f"{save_name}.png", format='png', dpi=360, bbox_inches='tight')
-    plt.close()
+    g.fig.savefig(f"{save_name}.png", format='png', dpi=360, bbox_inches='tight')
+    plt.close(g.fig)
 
 def main():
     args = parse_args()
@@ -186,7 +195,7 @@ def main():
             chP.loc[chP['gene_type'] != 'protein_coding', 'biotype'] = str(chP[chP['gene_type'] != 'protein_coding'].shape[0]) + ' ncRNAs'
             chP.loc[chP['gene_type'] == 'protein_coding', 'biotype2'] = 'mRNAs'
             chP.loc[chP['gene_type'] != 'protein_coding', 'biotype2'] = 'ncRNAs'
-            joinplot_chP_Ncontacts(chP, save_name=os.path.join(args.output_path, 'chP_{type}'.format(type=args.type)))
+            joinplot_chP_Ncontacts(chP, os.path.join(args.output_path, 'chP_{type}'.format(type=args.type)), args)
 
 
 if __name__ == '__main__':
