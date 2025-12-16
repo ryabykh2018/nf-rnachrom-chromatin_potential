@@ -3,7 +3,7 @@
 # Function to display usage information
 usage() {
     echo "Usage: $0 -d <distance> -i <input_path> -o <output_path> -u <uu_file> -m <um_file> -n <N_contacts_min> -f <fdr_threshold> -r <input_path_RNAseq> -l <gene_len_min> -s <path_to_RD_chP.py>"
-    echo "Example: $0 -d 500000 -i /path/to/input -o /path/to/output -u contacts.voting.UU.bed -m contacts.voting.UM.bed -n 100 -f 0.05 -r /path/to/rnaseq -l 1000 -s -s /path/to/RD_chP.py"
+    echo "Example: $0 -d 500000 -i /path/to/input -o /path/to/output -u contacts.voting.UU.bed -m contacts.voting.UM.bed -n 100 -f 0.05 -r /path/to/rnaseq -l 1000 -s /path/to/RD_chP.py"
     exit 1
 }
 
@@ -25,7 +25,7 @@ while getopts "d:i:o:u:m:n:f:r:l:s:" opt; do
 done
 
 # Check if all required parameters are provided
-if [ -z "$d" ] || [ -z "$input_path" ] || [ -z "$output_path" ] || [ -z "$uu_file" ] || [ -z "$um_file" ] || [ -z "$n_contacts_min" ] || [ -z "$fdr_threshold" ] || [ -z "$input_path_RNAseq" ] || [ -z "$gene_len_min" ]; then
+if [ -z "${d:-}" ] || [ -z "${input_path:-}" ] || [ -z "${output_path:-}" ] || [ -z "${uu_file:-}" ] || [ -z "${um_file:-}" ] || [ -z "${n_contacts_min:-}" ] || [ -z "${fdr_threshold:-}" ] || [ -z "${input_path_RNAseq:-}" ] || [ -z "${gene_len_min:-}" ] || [ -z "${SCRIPTSPATH:-}" ]; then
     usage
 fi
 
@@ -156,10 +156,10 @@ END {
 }' "$input_path/$um_file" > "$output_file_um_dist"
 
 # Create final UU files with headers
-echo "gene_name\tgene_type\tfrom_source\tN_counts" > "$output_file_uu_all"
+echo -e "gene_name\tgene_type\tfrom_source\tN_counts" > "$output_file_uu_all"
 cat "$temp_file_uu_all" >> "$output_file_uu_all"
 
-echo "gene_name\tgene_type\tfrom_source\tN_counts" > "$output_file_uu_dist"
+echo -e "gene_name\tgene_type\tfrom_source\tN_counts" > "$output_file_uu_dist"
 cat "$temp_file_uu_dist" >> "$output_file_uu_dist"
 
 # Add header to UM file
@@ -203,58 +203,31 @@ awk -F'\t' '
 rm "$output_file_um_dist"
 cp "$input_path/counts.tsv" "$output_path"
 
-# Run Python script for different datasets
-python3 $SCRIPTSPATH/RD_chP.py \
-    --input_path "$output_path" \
-    --output_path "$output_path" \
-    --input_path_RNAseq "$input_path_RNAseq" \
-    --counts_RNAseq "counts.tsv" \
-    --counts_contacts "counts_contacts_UU_all.tsv" \
-    --N_contacts_min "$n_contacts_min" \
-    --fdr_threshold "$fdr_threshold" \
-    --gene_len_min "$gene_len_min" \
-    --type "UU_all"
+contacts_files=( "counts_contacts_UU_all.tsv" "counts_contacts_UU_filter_dist_${d}.tsv" "counts.tsv" "counts_contacts_UU_UM_filter_dist_${d}.tsv" )
+types=( "UU_all" "UU_filter_dist_${d}" "UU_UM_all" "UU_UM_filter_dist_${d}" )
 
-python3 $SCRIPTSPATH/RD_chP.py \
-    --input_path "$output_path" \
-    --output_path "$output_path" \
-    --input_path_RNAseq "$input_path_RNAseq" \
-    --counts_RNAseq "counts.tsv" \
-    --counts_contacts "counts_contacts_UU_filter_dist_${d}.tsv" \
-    --N_contacts_min "$n_contacts_min" \
-    --fdr_threshold "$fdr_threshold" \
-    --gene_len_min "$gene_len_min" \
-    --type "UU_filter_dist_${d}"
+for i in "${!contacts_files[@]}"; do
+    python3 "$SCRIPTSPATH/RD_chP.py" \
+        --input_path "$output_path" \
+        --output_path "$output_path" \
+        --input_path_RNAseq "$input_path_RNAseq" \
+        --counts_RNAseq "counts.tsv" \
+        --counts_contacts "${contacts_files[i]}" \
+        --N_contacts_min "$n_contacts_min" \
+        --fdr_threshold "$fdr_threshold" \
+        --gene_len_min "$gene_len_min" \
+        --type "${types[i]}"
 
-python3 $SCRIPTSPATH/RD_chP.py \
-    --input_path "$output_path" \
-    --output_path "$output_path" \
-    --input_path_RNAseq "$input_path_RNAseq" \
-    --counts_RNAseq "counts.tsv" \
-    --counts_contacts "counts.tsv" \
-    --N_contacts_min "$n_contacts_min" \
-    --fdr_threshold "$fdr_threshold" \
-    --gene_len_min "$gene_len_min" \
-    --type "UU_UM_all"
+done
 
-python3 $SCRIPTSPATH/RD_chP.py \
-    --input_path "$output_path" \
-    --output_path "$output_path" \
-    --input_path_RNAseq "$input_path_RNAseq" \
-    --counts_RNAseq "counts.tsv" \
-    --counts_contacts "counts_contacts_UU_UM_filter_dist_${d}.tsv" \
-    --N_contacts_min "$n_contacts_min" \
-    --fdr_threshold "$fdr_threshold" \
-    --gene_len_min "$gene_len_min" \
-    --type "UU_UM_filter_dist_${d}"
-
-# /usr/bin/time -v sh count_contacts_all.sh \
-#                        -d 500000 \
-#                        -i /home/snap/projects/lncRNA_app/voting/output_SRR17331253_UU_UM \
-#                        -o /home/snap/projects/lncRNA_app/voting/output_SRR17331253_UU_UM/chP \
-#                        -u contacts.voting.UU.bed \
-#                        -m contacts.voting.UM.bed \
-#                        -n 100 \
-#                        -f 0.05 \
-#                        -r /home/snap/Downloads \
-#                        -l 100
+# sh count_contacts_all.sh \
+#         -d 500000 \
+#         -i /home/snap/projects/lncRNA_app/chromatin_potential/rnaseq_chrpot/voted_Meishan_piglets \
+#         -o ./chP_test \
+#         -u contacts.voting.UU.bed \
+#         -m contacts.voting.UM.bed \
+#         -n 1000 \
+#         -f 0.05 \
+#         -r /home/snap/projects/lncRNA_app/chromatin_potential/rnaseq_chrpot/voted_rnaseq_sus_muscle \
+#         -l 200 \
+#         -s /home/snap/projects/lncRNA_app/chromatin_potential
